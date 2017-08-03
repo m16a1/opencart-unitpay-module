@@ -26,18 +26,28 @@ class ControllerPaymentUnitpay extends Controller {
 
         $data['action']="https://unitpay.ru/pay/";
 
-        // Кодировка
-        //$data['encoding'] = "utf-8";
+        $customer = $this->getCustomer($order_info['customer_id']);
 
         $data['merchant_url'] = $data['action'] .
-            $data['unitpay_login'] .
-            '?sum='			. $data['out_summ'] .
-            '&account='		. $data['inv_id']	.
-            '&desc='        . $data['inv_desc'] .
-            '&unitpay_login='		. $data['unitpay_login'] .
-            '&resultUrl=' .  $data['success_url'];
+            $data['unitpay_login'] . '?' . http_build_query(array(
+                'sum'           => $data['out_summ'],
+                'currency'      => $rur_code,
+                'account'       => $data['inv_id'],
+                'desc'          => $data['inv_desc'],
+                'unitpay_login' => $data['unitpay_login'],
+                'resultUrl'     => $data['success_url'],
+                'cashItems'     => $this->getOrderItems(),
+                'customerEmail' => $customer['email'],
+                'customerPhone' => $customer['telephone'],
+                'signature'     => hash('sha256', join('{up}', array(
+                    $data['inv_id'],
+                    $rur_code,
+                    $data['inv_desc'],
+                    $data['out_summ'],
+                    $data['unitpay_key']
+                )))
+            ));
 
-//tesrt
         $this->id = 'payment';
 
         if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/payment/unitpay.tpl')) {
@@ -193,6 +203,26 @@ class ControllerPaymentUnitpay extends Controller {
     private function error($params){
         $new_order_status_id = $this->config->get('unitpay_order_status_id_error');
         $this->model_checkout_order->addOrderHistory($params['account'], $new_order_status_id, 'ошибка при оплате через UnitPay', false);
+    }
+
+    private function getCustomer($customerId)
+    {
+        $this->load->model('account/customer');
+        return $this->model_account_customer->getCustomer($customerId);
+    }
+    private function getOrderItems()
+    {
+        $this->load->model('account/order');
+        $orderProducts = $this->model_account_order->getOrderProducts($this->session->data['order_id']);
+        return base64_encode(
+            json_encode(
+                array_map(function ($item) {
+                    return array(
+                        'name'  => $item['name'],
+                        'count' => $item['quantity'],
+                        'price' => $item['price']
+                    );
+                }, $orderProducts)));
     }
 }
 ?>
