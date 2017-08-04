@@ -1,7 +1,9 @@
 <?php
 
-class ControllerExtensionPaymentUnitpay extends Controller {
-    public function index() {
+class ControllerExtensionPaymentUnitpay extends Controller
+{
+    public function index()
+    {
         $data['button_confirm'] = $this->language->get('button_confirm');
         $data['button_back'] = $this->language->get('button_back');
         $data['text_loading'] = $this->language->get('text_loading');
@@ -10,8 +12,8 @@ class ControllerExtensionPaymentUnitpay extends Controller {
         $order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
 
         $data['payment_unitpay_login'] = $this->config->get('payment_unitpay_login');
-        $data['payment_unitpay_key']= $this->config->get('payment_unitpay_key');
-        $data['success_url']= $this->config->get('unitpay_success_url');
+        $data['payment_unitpay_key'] = $this->config->get('payment_unitpay_key');
+        $data['success_url'] = $this->config->get('unitpay_success_url');
         // Номер заказа
         $data['inv_id'] = $this->session->data['order_id'];
 
@@ -24,22 +26,22 @@ class ControllerExtensionPaymentUnitpay extends Controller {
         $data['out_summ'] = $this->currency->format($rur_order_total, $rur_code, $order_info['currency_value'], FALSE);
         $data['out_summ'] = number_format($data['out_summ'], 2, '.', '');
 
-        $data['action']="https://unitpay.ru/pay/";
+        $data['action'] = "https://unitpay.ru/pay/";
 
         $customer = $this->getCustomer($order_info['customer_id']);
 
         $data['merchant_url'] = $data['action'] .
             $data['payment_unitpay_login'] . '?' . http_build_query(array(
-                'sum'           => $order_info['total'],
-                'currency'      => $order_info['currency_code'],
-                'account'       => $data['inv_id'],
-                'desc'          => $data['inv_desc'],
+                'sum' => $order_info['total'],
+                'currency' => $order_info['currency_code'],
+                'account' => $data['inv_id'],
+                'desc' => $data['inv_desc'],
                 'unitpay_login' => $data['payment_unitpay_key'],
-                'resultUrl'     => $data['success_url'],
-                'cashItems'     => $this->getOrderItems(),
+                'resultUrl' => $data['success_url'],
+                'cashItems' => $this->getOrderItems(),
                 'customerEmail' => $customer['email'],
                 'customerPhone' => $customer['telephone'],
-                'signature'     => hash('sha256', join('{up}', array(
+                'signature' => hash('sha256', join('{up}', array(
                     $data['inv_id'],
                     $order_info['currency_code'],
                     $data['inv_desc'],
@@ -53,11 +55,13 @@ class ControllerExtensionPaymentUnitpay extends Controller {
         return $this->load->view('extension/payment/unitpay', $data);
     }
 
-    public function callback() {
+    public function callback()
+    {
         echo $this->getResult();
     }
 
-    public function getResult() {
+    public function getResult()
+    {
         $request = $_GET;
 
         if (empty($request['method']) || empty($request['params']) || !is_array($request['params'])) {
@@ -67,7 +71,7 @@ class ControllerExtensionPaymentUnitpay extends Controller {
         $method = $request['method'];
         $params = $request['params'];
         $this->load->model('checkout/order');
-        $arOrder = $this->model_checkout_order->getOrder($params['unitpayId']);
+        $arOrder = $this->model_checkout_order->getOrder($params['account']);
 
         // Сумма заказа
         $rur_code = 'RUB';
@@ -77,14 +81,15 @@ class ControllerExtensionPaymentUnitpay extends Controller {
 
 
         if ($params['signature'] != $this->getSha256SignatureByMethodAndParams(
-                $method, $params, $this->config->get('unitpay_key'))) {
+                $method, $params, $this->config->get('payment_unitpay_key'))
+        ) {
             return $this->getResponseError('Incorrect digital signature');
         }
 
 
         if ($method == 'check') {
 
-            if (!$arOrder){
+            if (!$arOrder) {
                 return $this->getResponseError('Can\'t find order');
             }
 
@@ -100,7 +105,7 @@ class ControllerExtensionPaymentUnitpay extends Controller {
 
             return $this->getResponseSuccess('CHECK is successful');
         } elseif ($method == 'pay') {
-            if ($arOrder && $arOrder['order_status_id'] == $this->config->get('unitpay_order_status_id_after_pay')){
+            if ($arOrder && $arOrder['order_status_id'] == $this->config->get('payment_unitpay_order_status_id_after_pay')) {
                 return $this->getResponseSuccess('Payment has already been paid');
             }
 
@@ -121,25 +126,26 @@ class ControllerExtensionPaymentUnitpay extends Controller {
                 return $this->getResponseError('Can\'t find order');
             }
 
-            if ($this->config->get('unitpay_set_error_status')) {
+            if ($this->config->get('payment_unitpay_set_error_status')) {
                 $this->error($params);
             }
 
             return $this->getResponseSuccess('ERROR is successful');
         }
 
-        return $this->getResponseError($method.' not supported');
+        return $this->getResponseError($method . ' not supported');
     }
 
     public function confirm()
     {
         $this->load->model('checkout/order');
-        if ($this->config->get('unitpay_create_order')=='1') $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], $this->config->get('unitpay_order_status_id_after_create'), '', true);
-        if ($this->config->get('unitpay_cart_reset')=='1') $this->cart->clear();
+        if ($this->config->get('payment_unitpay_create_order') == '1') $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], $this->config->get('payment_unitpay_order_status_id_after_create'), '', true);
+        if ($this->config->get('payment_unitpay_cart_reset') == '1') $this->cart->clear();
     }
 
 
-    private function getResponseSuccess($message) {
+    private function getResponseSuccess($message)
+    {
         return json_encode(array(
             "jsonrpc" => "2.0",
             "result" => array(
@@ -149,7 +155,8 @@ class ControllerExtensionPaymentUnitpay extends Controller {
         ));
     }
 
-    private function getResponseError($message) {
+    private function getResponseError($message)
+    {
         return json_encode(array(
             "jsonrpc" => "2.0",
             "error" => array(
@@ -173,25 +180,27 @@ class ControllerExtensionPaymentUnitpay extends Controller {
         unset($params['sign']);
         unset($params['signature']);
 
-        return hash('sha256', $method.$delimiter.join($delimiter, $params).$delimiter.$secretKey);
+        return hash('sha256', $method . $delimiter . join($delimiter, $params) . $delimiter . $secretKey);
     }
 
     private function check($params)
     {
-        if ($this->model_checkout_order->getOrder($params['unitpayId'])) {
+        if ($this->model_checkout_order->getOrder($params['account'])) {
             return true;
         }
         return 'Order not found';
     }
 
-    private function pay($params) {
-        $new_order_status_id = $this->config->get('unitpay_order_status_id_after_pay');
-        $this->model_checkout_order->addOrderHistory($params['unitpayId'], $new_order_status_id, 'оплата через UnitPay', true);
+    private function pay($params)
+    {
+        $new_order_status_id = $this->config->get('payment_unitpay_order_status_id_after_pay');
+        $this->model_checkout_order->addOrderHistory($params['account'], $new_order_status_id, 'оплата через UnitPay', true);
     }
 
-    private function error($params) {
-        $new_order_status_id = $this->config->get('unitpay_order_status_id_error');
-        $this->model_checkout_order->addOrderHistory($params['unitpayId'], $new_order_status_id, 'ошибка при оплате через UnitPay', false);
+    private function error($params)
+    {
+        $new_order_status_id = $this->config->get('payment_unitpay_order_status_id_error');
+        $this->model_checkout_order->addOrderHistory($params['account'], $new_order_status_id, 'ошибка при оплате через UnitPay', false);
     }
 
     private function getOrderItems()
@@ -202,7 +211,7 @@ class ControllerExtensionPaymentUnitpay extends Controller {
             json_encode(
                 array_map(function ($item) {
                     return array(
-                        'name'  => $item['name'],
+                        'name' => $item['name'],
                         'count' => $item['quantity'],
                         'price' => $item['price']
                     );
@@ -215,4 +224,5 @@ class ControllerExtensionPaymentUnitpay extends Controller {
         return $this->model_account_customer->getCustomer($customerId);
     }
 }
+
 ?>
