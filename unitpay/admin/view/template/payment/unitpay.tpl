@@ -20,6 +20,11 @@
       <button type="button" class="close" data-dismiss="alert">&times;</button>
     </div>
     <?php } ?>
+    <?php if ($error_domain) { ?>
+    <div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> <?php echo $error_domain; ?>
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    <?php } ?>
     <?php if ($error_login) { ?>
     <div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> <?php echo $error_login; ?>
       <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -36,6 +41,13 @@
       </div>
       <div class="panel-body">
         <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form-unitpay" class="form-horizontal">
+
+          <div class="form-group required">
+            <label class="col-sm-2 control-label" for="input-login"><?php echo $entry_domain; ?></label>
+            <div class="col-sm-10">
+              <input type="text" name="unitpay_domain" value="<?php echo $unitpay_domain; ?>" placeholder="<?php echo $entry_domain; ?>" id="input-login" class="form-control" />
+            </div>
+          </div>
 
           <div class="form-group required">
             <label class="col-sm-2 control-label" for="input-login"><?php echo $entry_login; ?></label>
