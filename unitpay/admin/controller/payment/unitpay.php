@@ -203,7 +203,7 @@ class ControllerPaymentUnitpay extends Controller {
 		}
 
         if (!$this->request->post['unitpay_domain']) {
-            $this->error['login'] = $this->language->get('error_login');
+            $this->error['domain'] = $this->language->get('error_domain');
         }
 		
 		if (!$this->request->post['unitpay_login']) {
