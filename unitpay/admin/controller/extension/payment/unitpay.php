@@ -36,6 +36,7 @@ class ControllerExtensionPaymentUnitpay extends Controller
         $data['text_save_and_stay'] = $this->language->get('text_save_and_stay');
 
 
+        $data['entry_domain'] = $this->language->get('entry_domain');
         $data['entry_login'] = $this->language->get('entry_login');
         $data['entry_unitpay_key'] = $this->language->get('entry_unitpay_key');
 
@@ -68,6 +69,12 @@ class ControllerExtensionPaymentUnitpay extends Controller
         }
 
         //
+        if (isset($this->error['domain'])) {
+            $data['error_domain'] = $this->error['domain'];
+        } else {
+            $data['error_domain'] = '';
+        }
+
         if (isset($this->error['login'])) {
             $data['error_login'] = $this->error['login'];
         } else {
@@ -81,6 +88,7 @@ class ControllerExtensionPaymentUnitpay extends Controller
         }
 
         $data = array_merge($data, array(
+            'payment_unitpay_domain' => $this->getRequestParam('payment_unitpay_domain'),
             'payment_unitpay_login' => $this->getRequestParam('payment_unitpay_login'),
             'payment_unitpay_key' => $this->getRequestParam('payment_unitpay_key'),
             'payment_unitpay_order_status_id_after_create' => $this->getRequestParam('payment_unitpay_order_status_id_after_create'),
@@ -132,6 +140,10 @@ class ControllerExtensionPaymentUnitpay extends Controller
     {
         if (!$this->user->hasPermission('modify', 'extension/payment/unitpay')) {
             $this->error['warning'] = $this->language->get('error_permission');
+        }
+
+        if (!$this->request->post['payment_unitpay_domain']) {
+            $this->error['domain'] = $this->language->get('error_domain');
         }
 
         if (!$this->request->post['payment_unitpay_login']) {

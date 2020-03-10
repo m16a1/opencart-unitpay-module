@@ -11,6 +11,7 @@ class ControllerExtensionPaymentUnitpay extends Controller
         $this->load->model('checkout/order');
         $order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
 
+        $data['payment_unitpay_domain'] = $this->config->get('payment_unitpay_domain');
         $data['payment_unitpay_login'] = $this->config->get('payment_unitpay_login');
         $data['payment_unitpay_key'] = $this->config->get('payment_unitpay_key');
         $data['success_url'] = $this->config->get('unitpay_success_url');
@@ -26,7 +27,7 @@ class ControllerExtensionPaymentUnitpay extends Controller
         $data['out_summ'] = $this->currency->format($rur_order_total, $rur_code, $order_info['currency_value'], FALSE);
         $data['out_summ'] = number_format($data['out_summ'], 2, '.', '');
 
-        $data['action'] = "https://unitpay.ru/pay/";
+        $data['action'] = "https://{$data['payment_unitpay_domain']}/pay/";
 
         $customer = $this->getCustomer($order_info['customer_id']);
 
