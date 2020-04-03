@@ -33,4 +33,4 @@ $_['text_success']       	= 'Success: You have modified UnitPay module details!'
 $_['text_yes']           	= 'Yes';
 $_['text_no']           	= 'No';
 $_['text_edit']           	= 'Edit payment Unitpay';
-$_['text_unitpay']          = "<a href='https://unitpay.ru' target='_blank' title='Unitpay'><img src=''view/image/payment/unitpay.png' alt='Unitpay' title='Unitpay' style='border: 1px solid #EEEEEE;' /></a>";
+$_['text_unitpay']          = "<img src=''view/image/payment/unitpay.png' alt='Unitpay' title='Unitpay' style='border: 1px solid #EEEEEE;' />";
