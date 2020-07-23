@@ -29,8 +29,6 @@ class ControllerExtensionPaymentUnitpay extends Controller
 
         $data['action'] = "https://{$data['payment_unitpay_domain']}/pay/";
 
-        $customer = $this->getCustomer($order_info['customer_id']);
-
         $data['merchant_url'] = $data['action'] .
             $data['payment_unitpay_login'] . '?' . http_build_query(array(
                 'sum' => $order_info['total'],
@@ -40,8 +38,8 @@ class ControllerExtensionPaymentUnitpay extends Controller
                 'unitpay_login' => $data['payment_unitpay_key'],
                 'resultUrl' => $data['success_url'],
                 'cashItems' => $this->getOrderItems(),
-                'customerEmail' => $customer['email'],
-                'customerPhone' => $customer['telephone'],
+                'customerEmail' => $order_info['email'],
+                'customerPhone' => $order_info['telephone'],
                 'signature' => hash('sha256', join('{up}', array(
                     $data['inv_id'],
                     $order_info['currency_code'],
@@ -217,12 +215,6 @@ class ControllerExtensionPaymentUnitpay extends Controller
                         'price' => $item['price']
                     );
                 }, $orderProducts)));
-    }
-
-    private function getCustomer($customerId)
-    {
-        $this->load->model('account/customer');
-        return $this->model_account_customer->getCustomer($customerId);
     }
 }
 
