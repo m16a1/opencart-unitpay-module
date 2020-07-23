@@ -26,8 +26,6 @@ class ControllerPaymentUnitpay extends Controller {
         $data['out_summ'] = number_format($data['out_summ'], 2, '.', '');
 
         $data['action']="https://{$data['unitpay_domain']}/pay/";
-        $customer = $this->getCustomer($order_info['customer_id']);
-
         // Кодировка
         //$data['encoding'] = "utf-8";
 
@@ -40,8 +38,8 @@ class ControllerPaymentUnitpay extends Controller {
                 'unitpay_login' => $data['unitpay_login'],
                 'resultUrl'     => $data['success_url'],
                 'cashItems'     => $this->getOrderItems(),
-                'customerEmail' => $customer['email'],
-                'customerPhone' => $customer['telephone'],
+                'customerEmail' => $order_info['email'],
+                'customerPhone' => $order_info['telephone'],
                 'signature'     => hash('sha256', join('{up}', array(
                     $data['inv_id'],
                     $rur_code,
@@ -200,12 +198,6 @@ class ControllerPaymentUnitpay extends Controller {
     private function error($params){
         $new_order_status_id = $this->config->get('unitpay_order_status_id_error');
         $this->model_checkout_order->addOrderHistory($params['account'], $new_order_status_id, 'ошибка при оплате через UnitPay', false);
-    }
-
-    private function getCustomer($customerId)
-    {
-        $this->load->model('account/customer');
-        return $this->model_account_customer->getCustomer($customerId);
     }
 
     private function getOrderItems()
