@@ -204,15 +204,50 @@ class ControllerPaymentUnitpay extends Controller {
     {
         $this->load->model('account/order');
         $orderProducts = $this->model_account_order->getOrderProducts($this->session->data['order_id']);
-        return base64_encode(
-            json_encode(
-                array_map(function ($item) {
-                    return array(
+
+        $this->load->model('extension/total/coupon');
+        $coupon = $this->model_extension_total_coupon->getCoupon($this->session->data['coupon']);
+
+        if ($coupon) {
+            // Скидка в процентах
+            if ($coupon['type'] === 'P') {
+                $orderProducts = array_map(function ($item) use ($coupon) {
+                    return [
                         'name'  => $item['name'],
                         'count' => $item['quantity'],
-                        'price' => $item['price']
-                    );
-                }, $orderProducts)));
+                        'price' => round($item['price'] - $item['price'] * $coupon['discount'] / 100, 2)
+                    ];
+                }, $orderProducts);
+            }
+
+            // Фиксированная скидка в валюте
+            if ($coupon['type'] === 'F') {
+                $totalAmount = 0;
+                foreach ($orderProducts as $product) {
+                    $totalAmount += $product['price'] * $product['quantity'];
+                }
+
+                $discountRatio = $coupon['discount'] / $totalAmount;
+
+                $orderProducts = array_map(function ($item) use ($coupon, $discountRatio) {
+                    return [
+                        'name'  => $item['name'],
+                        'count' => $item['quantity'],
+                        'price' => round($item['price'] - $item['price'] * $discountRatio, 2)
+                    ];
+                }, $orderProducts);
+            }
+        } else {
+            $orderProducts = array_map(function ($item) {
+                return array(
+                    'name' => $item['name'],
+                    'count' => $item['quantity'],
+                    'price' => $item['price']
+                );
+            }, $orderProducts);
+        }
+
+        return base64_encode(json_encode($orderProducts));
     }
 }
 ?>
