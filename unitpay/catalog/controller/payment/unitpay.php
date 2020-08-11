@@ -247,6 +247,14 @@ class ControllerPaymentUnitpay extends Controller {
             }, $orderProducts);
         }
 
+        if (isset($this->session->data['shipping_method'])) {
+            $orderProducts[] = [
+                'name' => $this->session->data['shipping_method']['title'],
+                'count' => 1,
+                'price' => $this->session->data['shipping_method']['cost']
+            ];
+        }
+
         return base64_encode(json_encode($orderProducts));
     }
 }
