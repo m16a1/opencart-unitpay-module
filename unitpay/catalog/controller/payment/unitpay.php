@@ -25,6 +25,12 @@ class ControllerPaymentUnitpay extends Controller {
         $data['out_summ'] = $this->currency->format($rur_order_total, $rur_code, $order_info['currency_value'], FALSE);
         $data['out_summ'] = number_format($data['out_summ'], 2, '.', '');
 
+        $locale = 'en';
+
+        if (isset($this->session->data['language']) && $this->session->data['language'] === 'ru-ru') {
+            $locale = 'ru';
+        }
+
         $data['action']="https://{$data['unitpay_domain']}/pay/";
 
         $data['merchant_url'] = $data['action'] .
@@ -35,9 +41,10 @@ class ControllerPaymentUnitpay extends Controller {
                 'desc'          => $data['inv_desc'],
                 'unitpay_login' => $data['unitpay_login'],
                 'resultUrl'     => $data['success_url'],
-                'cashItems'     => $this->getOrderItems(),
+                'cashItems'     => $this->getOrderItems($order_info['currency_code']),
                 'customerEmail' => $order_info['email'],
                 'customerPhone' => $order_info['telephone'],
+                'locale'        => $locale,
                 'signature'     => hash('sha256', join('{up}', array(
                     $data['inv_id'],
                     $rur_code,
@@ -204,22 +211,25 @@ class ControllerPaymentUnitpay extends Controller {
         $this->model_checkout_order->addOrderHistory($params['account'], $new_order_status_id, 'ошибка при оплате через UnitPay', false);
     }
 
-    private function getOrderItems()
+    private function getOrderItems($currency)
     {
         $this->load->model('account/order');
         $orderProducts = $this->model_account_order->getOrderProducts($this->session->data['order_id']);
 
         $this->load->model('extension/total/coupon');
-        $coupon = $this->model_extension_total_coupon->getCoupon($this->session->data['coupon']);
+        $coupon = isset($this->session->data['coupon']) ?
+            $this->model_extension_total_coupon->getCoupon($this->session->data['coupon']) :
+            null;
 
         if ($coupon) {
             // Скидка в процентах
             if ($coupon['type'] === 'P') {
-                $orderProducts = array_map(function ($item) use ($coupon) {
+                $orderProducts = array_map(function ($item) use ($coupon, $currency) {
                     return [
-                        'name'  => $item['name'],
-                        'count' => $item['quantity'],
-                        'price' => round($item['price'] - $item['price'] * $coupon['discount'] / 100, 2)
+                        'name'     => $item['name'],
+                        'count'    => $item['quantity'],
+                        'price'    => round($item['price'] - $item['price'] * $coupon['discount'] / 100, 2),
+                        'currency' => $currency,
                     ];
                 }, $orderProducts);
             }
@@ -233,29 +243,32 @@ class ControllerPaymentUnitpay extends Controller {
 
                 $discountRatio = $coupon['discount'] / $totalAmount;
 
-                $orderProducts = array_map(function ($item) use ($coupon, $discountRatio) {
+                $orderProducts = array_map(function ($item) use ($coupon, $discountRatio, $currency) {
                     return [
-                        'name'  => $item['name'],
-                        'count' => $item['quantity'],
-                        'price' => round($item['price'] - $item['price'] * $discountRatio, 2)
+                        'name'     => $item['name'],
+                        'count'    => $item['quantity'],
+                        'price'    => round($item['price'] - $item['price'] * $discountRatio, 2),
+                        'currency' => $currency,
                     ];
                 }, $orderProducts);
             }
         } else {
-            $orderProducts = array_map(function ($item) {
+            $orderProducts = array_map(function ($item) use ($currency) {
                 return array(
-                    'name' => $item['name'],
-                    'count' => $item['quantity'],
-                    'price' => $item['price']
+                    'name'     => $item['name'],
+                    'count'    => $item['quantity'],
+                    'price'    => $item['price'],
+                    'currency' => $currency,
                 );
             }, $orderProducts);
         }
 
         if (isset($this->session->data['shipping_method']) && $this->session->data['shipping_method']['cost'] > 0) {
             $orderProducts[] = [
-                'name' => $this->session->data['shipping_method']['title'],
-                'count' => 1,
-                'price' => $this->session->data['shipping_method']['cost']
+                'name'     => $this->session->data['shipping_method']['title'],
+                'count'    => 1,
+                'price'    => $this->session->data['shipping_method']['cost'],
+                'currency' => $currency,
             ];
         }
 
