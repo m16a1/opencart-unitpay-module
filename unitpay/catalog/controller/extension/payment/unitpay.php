@@ -33,15 +33,17 @@ class ControllerExtensionPaymentUnitpay extends Controller
             $locale = 'ru';
         }
 
+        // Общая сумма в выбранной валюте
+        $totalAmount = round($order_info['total'] * $order_info['currency_value'], 2);
+
         $data['action'] = "https://{$data['payment_unitpay_domain']}/pay/";
 
         $data['merchant_url'] = $data['action'] .
             $data['payment_unitpay_login'] . '?' . http_build_query(array(
-                'sum' => $order_info['total'],
+                'sum' => $totalAmount,
                 'currency' => $order_info['currency_code'],
                 'account' => $data['inv_id'],
                 'desc' => $data['inv_desc'],
-                'unitpay_login' => $data['payment_unitpay_key'],
                 'resultUrl' => $data['success_url'],
                 'cashItems' => $this->getOrderItems($order_info['currency_code']),
                 'customerEmail' => $order_info['email'],
@@ -51,7 +53,7 @@ class ControllerExtensionPaymentUnitpay extends Controller
                     $data['inv_id'],
                     $order_info['currency_code'],
                     $data['inv_desc'],
-                    $order_info['total'],
+                    $totalAmount,
                     $data['payment_unitpay_key']
                 )))
             ));
@@ -85,6 +87,8 @@ class ControllerExtensionPaymentUnitpay extends Controller
         $total_price = $this->currency->format($rur_order_total, $rur_code, $arOrder['currency_value'], FALSE);
         $total_price = number_format($total_price, 2, '.', '');
 
+        // Общая сумма в выбранной валюте
+        $totalAmount = round($arOrder['total'] * $arOrder['currency_value'], 2);
 
         if ($params['signature'] != $this->getSha256SignatureByMethodAndParams(
                 $method, $params, $this->config->get('payment_unitpay_key'))
@@ -99,9 +103,9 @@ class ControllerExtensionPaymentUnitpay extends Controller
                 return $this->getResponseError('Can\'t find order');
             }
 
-            if ($params['sum'] != $total_price) {
+            if ($params['sum'] != $totalAmount) {
                 return $this->getResponseError('Сумма оплаты в' . $params['sum'] . ' руб. не совпадает с суммой необходимой для оплаты товара' .
-                    'стоимостью ' . $total_price . ' руб.');
+                    'стоимостью ' . $totalAmount . ' руб.');
             }
 
             $checkResult = $this->check($params);
@@ -119,9 +123,9 @@ class ControllerExtensionPaymentUnitpay extends Controller
                 return $this->getResponseError('Can\'t find order');
             }
 
-            if ($params['sum'] != $total_price) {
+            if ($params['sum'] != $totalAmount) {
                 return $this->getResponseError('Сумма оплаты в' . $params['sum'] . ' руб. не совпадает с суммой необходимой для оплаты товара' .
-                    'стоимостью ' . $total_price . ' руб.');
+                    'стоимостью ' . $totalAmount . ' руб.');
             }
 
             $this->pay($params);
