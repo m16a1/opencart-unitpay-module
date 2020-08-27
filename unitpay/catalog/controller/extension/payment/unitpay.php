@@ -47,7 +47,7 @@ class ControllerExtensionPaymentUnitpay extends Controller
                 'resultUrl' => $data['success_url'],
                 'cashItems' => $this->getOrderItems($order_info['currency_code'], $order_info['currency_value']),
                 'customerEmail' => $order_info['email'],
-                'customerPhone' => $order_info['telephone'],
+                'customerPhone' => preg_replace('/\D/', '', $order_info['telephone']),
                 'locale' => $locale,
                 'signature' => hash('sha256', join('{up}', array(
                     $data['inv_id'],
