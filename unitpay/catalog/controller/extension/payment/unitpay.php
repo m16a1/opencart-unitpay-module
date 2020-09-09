@@ -265,6 +265,7 @@ class ControllerExtensionPaymentUnitpay extends Controller {
                 'count'    => 1,
                 'price'    => round($this->session->data['shipping_method']['cost'] * $currencyValue, 2),
                 'currency' => $currencyCode,
+                'type'     => 'service',
             ];
         }
 
