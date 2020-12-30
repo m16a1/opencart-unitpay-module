@@ -25,7 +25,14 @@
       </div>
       <div class="panel-body">
         <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-unitpay" class="form-horizontal">
-          <h1>test</h1>
+          <h1>UnitPay</h1>
+          <div class="form-group required">
+            <label class="col-sm-2 control-label" for="input-domain">{{ entry_domain }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="payment_unitpay_domain" value="{{ payment_unitpay_domain }}" placeholder="{{ entry_domain }}" id="input-domain" class="form-control" />
+            </div>
+          </div>
+
           <div class="form-group required">
             <label class="col-sm-2 control-label" for="input-login">{{ entry_login }}</label>
             <div class="col-sm-10">
@@ -37,6 +44,30 @@
             <label class="col-sm-2 control-label" for="input-unitpay_key">{{ entry_unitpay_key }}</label>
             <div class="col-sm-10">
               <input type="text" name="payment_unitpay_key" value="{{ payment_unitpay_key }}" placeholder="{{ entry_unitpay_key }}" id="input-unitpay_key" class="form-control" />
+            </div>
+          </div>
+
+	  <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-unitpay_nds">{{ entry_unitpay_nds }}</label>
+            <div class="col-sm-10">
+              <select name="payment_unitpay_nds" id="input-unitpay_nds" class="form-control">
+       		<option {% if payment_unitpay_nds == 'none' %} selected="selected" {% endif %} value="none">-</option>
+		<option {% if payment_unitpay_nds == 'vat0' %} selected="selected" {% endif %} value="vat0">0%</option>
+		<option {% if payment_unitpay_nds == 'vat10' %} selected="selected" {% endif %} value="vat10">10%</option>
+		<option {% if payment_unitpay_nds == 'vat20' %} selected="selected" {% endif %} value="vat20">20%</option>
+              </select>
+            </div>
+          </div>
+
+	<div class="form-group">
+            <label class="col-sm-2 control-label" for="input-unitpay_delivery_nds">{{ entry_unitpay_delivery_nds }}</label>
+            <div class="col-sm-10">
+              <select name="payment_unitpay_delivery_nds" id="input-unitpay_delivery_nds" class="form-control">
+       		<option {% if payment_unitpay_delivery_nds == 'none' %} selected="selected" {% endif %} value="none">-</option>
+		<option {% if payment_unitpay_delivery_nds == 'vat0' %} selected="selected" {% endif %} value="vat0">0%</option>
+		<option {% if payment_unitpay_delivery_nds == 'vat10' %} selected="selected" {% endif %} value="vat10">10%</option>
+		<option {% if payment_unitpay_delivery_nds == 'vat20' %} selected="selected" {% endif %} value="vat20">20%</option>
+              </select>
             </div>
           </div>
 
