@@ -6,6 +6,8 @@ $_['heading_title']      	= 'UnitPay';
 $_['entry_domain']          = 'Домен:';
 $_['entry_login']        	= 'Публичный ключ:';
 $_['entry_unitpay_key']    	= 'Секретный ключ:';
+$_['entry_unitpay_nds']    	= 'НДС:';
+$_['entry_unitpay_delivery_nds'] = 'НДС (Доставка):';
 
 $_['entry_order_status_after_pay']          = 'Статус заказа после оплаты:';
 $_['entry_order_status_after_create']       = 'Статус заказа после создания:';

@@ -6,6 +6,8 @@ $_['heading_title']      	= 'UnitPay';
 $_['entry_domain']          = 'Domain:';
 $_['entry_login']        	= 'Public Key:';
 $_['entry_unitpay_key']    	= 'Secret Key:';
+$_['entry_unitpay_nds']    	= 'VAT:';
+$_['entry_unitpay_delivery_nds'] = 'VAT (Delivery):';
 
 $_['entry_order_status_after_pay']          = 'Order Status after pay:';
 $_['entry_order_status_after_create']       = 'Order Status after create:';
