@@ -39,6 +39,8 @@ class ControllerExtensionPaymentUnitpay extends Controller {
         $data['entry_domain'] = $this->language->get('entry_domain');
 		$data['entry_login'] = $this->language->get('entry_login');
 		$data['entry_unitpay_key'] = $this->language->get('entry_unitpay_key');
+        $data['entry_unitpay_nds'] = $this->language->get('entry_unitpay_nds');
+        $data['entry_unitpay_delivery_nds'] = $this->language->get('entry_unitpay_delivery_nds');
 
 		// URL
 		$data['copy_result_url'] 	= HTTP_CATALOG . 'index.php?route=extension/payment/unitpay/callback';
@@ -131,6 +133,18 @@ class ControllerExtensionPaymentUnitpay extends Controller {
 		} else {
 			$data['unitpay_key'] = $this->config->get('unitpay_key');
 		}
+
+        if (isset($this->request->post['unitpay_nds'])) {
+            $data['unitpay_nds'] = $this->request->post['unitpay_nds'];
+        } else {
+            $data['unitpay_nds'] = $this->config->get('unitpay_nds');
+        }
+
+        if (isset($this->request->post['unitpay_delivery_nds'])) {
+            $data['unitpay_delivery_nds'] = $this->request->post['unitpay_delivery_nds'];
+        } else {
+            $data['unitpay_delivery_nds'] = $this->config->get('unitpay_delivery_nds');
+        }
 
 		if (isset($this->request->post['unitpay_order_status_id_after_create'])) {
 			$data['unitpay_order_status_id_after_create'] = $this->request->post['unitpay_order_status_id_after_create'];
