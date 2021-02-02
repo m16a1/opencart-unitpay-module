@@ -30,12 +30,6 @@ class ControllerExtensionPaymentUnitpay extends Controller
         $data['out_summ'] = $this->currency->format($rur_order_total, $rur_code, $order_info['currency_value'], FALSE);
         $data['out_summ'] = number_format($data['out_summ'], 2, '.', '');
 
-        $locale = 'en';
-
-        if (isset($this->session->data['language']) && $this->session->data['language'] === 'ru-ru') {
-            $locale = 'ru';
-        }
-
         // Общая сумма в выбранной валюте
         $totalAmount = number_format(($order_info['total'] * $order_info['currency_value']), 2, '.', '');
 
@@ -47,11 +41,9 @@ class ControllerExtensionPaymentUnitpay extends Controller
                 'currency' => $order_info['currency_code'],
                 'account' => $data['inv_id'],
                 'desc' => $data['inv_desc'],
-                'resultUrl' => $data['success_url'],
                 'cashItems' => $this->getOrderItems($order_info['currency_code'], $order_info['currency_value'], $data),
                 'customerEmail' => $order_info['email'],
                 'customerPhone' => preg_replace('/\D/', '', $order_info['telephone']),
-                'locale' => $locale,
                 'signature' => hash('sha256', join('{up}', array(
                     $data['inv_id'],
                     $order_info['currency_code'],
