@@ -12,12 +12,15 @@ class ControllerPaymentUnitpay extends Controller {
         $data['unitpay_domain'] = $this->config->get('unitpay_domain');
         $data['unitpay_login'] = $this->config->get('unitpay_login');
         $data['unitpay_key']= $this->config->get('unitpay_key');
+        $data['unitpay_nds']= $this->config->get('unitpay_nds');
+        $data['unitpay_delivery_nds']= $this->config->get('unitpay_delivery_nds');
+
         $data['success_url']= $this->config->get('unitpay_success_url');
         // Номер заказа
         $data['inv_id'] = $this->session->data['order_id'];
 
         // Комментарий к заказу
-        $data['inv_desc'] = $this->config->get('config_store') . ' ' . $order_info['payment_firstname'] . ' ' . $order_info['payment_address_1'] . ' ' . $order_info['payment_address_2'] . ' ' . $order_info['payment_city'] . ' ' . $order_info['email'];
+        $data['inv_desc'] = "Оплата заказа № " . $data['inv_id'];
 
         // Сумма заказа
         $rur_code = 'RUB';
@@ -25,14 +28,9 @@ class ControllerPaymentUnitpay extends Controller {
         $data['out_summ'] = $this->currency->format($rur_order_total, $rur_code, $order_info['currency_value'], FALSE);
         $data['out_summ'] = number_format($data['out_summ'], 2, '.', '');
 
-        $locale = 'en';
-
-        if (isset($this->session->data['language']) && $this->session->data['language'] === 'ru-ru') {
-            $locale = 'ru';
-        }
 
         // Общая сумма в выбранной валюте
-        $totalAmount = round($order_info['total'] * $order_info['currency_value'], 2);
+        $totalAmount = number_format(($order_info['total'] * $order_info['currency_value']), 2, '.', '');
 
         $data['action']="https://{$data['unitpay_domain']}/pay/";
 
@@ -42,15 +40,12 @@ class ControllerPaymentUnitpay extends Controller {
                 'currency'      => $order_info['currency_code'],
                 'account'       => $data['inv_id'],
                 'desc'          => $data['inv_desc'],
-                'unitpay_login' => $data['unitpay_login'],
-                'resultUrl'     => $data['success_url'],
-                'cashItems'     => $this->getOrderItems($order_info['currency_code'], $order_info['currency_value']),
+                'cashItems'     => $this->getOrderItems($order_info['currency_code'], $order_info['currency_value'], $data),
                 'customerEmail' => $order_info['email'],
                 'customerPhone' => preg_replace('/\D/', '', $order_info['telephone']),
-                'locale'        => $locale,
                 'signature'     => hash('sha256', join('{up}', array(
                     $data['inv_id'],
-                    $rur_code,
+                    $order_info['currency_code'],
                     $data['inv_desc'],
                     $totalAmount,
                     $data['unitpay_key']
@@ -91,7 +86,7 @@ class ControllerPaymentUnitpay extends Controller {
         $total_price = number_format($total_price, 2, '.', '');
 
         // Общая сумма в выбранной валюте
-        $totalAmount = round($arOrder['total'] * $arOrder['currency_value'], 2);
+        $totalAmount = number_format(($arOrder['total'] * $arOrder['currency_value']), 2, '.', '');
 
         if ($params['signature'] != $this->getSha256SignatureByMethodAndParams(
                 $method, $params, $this->config->get('unitpay_key'))) {
@@ -105,8 +100,8 @@ class ControllerPaymentUnitpay extends Controller {
                 return $this->getResponseError('Can\'t find order');
             }
 
-            if ($params['sum'] != $totalAmount){
-                return $this->getResponseError('Сумма оплаты в' . $params['sum'] . ' руб. не совпадает с суммой необходимой для оплаты товара' .
+            if (number_format($params['orderSum'], 2, '.', '') != $totalAmount) {
+                return $this->getResponseError('Сумма оплаты в' . $params['orderSum'] . ' руб. не совпадает с суммой необходимой для оплаты товара' .
                     'стоимостью ' . $totalAmount . ' руб.');
             }
 
@@ -216,25 +211,26 @@ class ControllerPaymentUnitpay extends Controller {
         $this->model_checkout_order->addOrderHistory($params['account'], $new_order_status_id, 'ошибка при оплате через UnitPay', false);
     }
 
-    private function getOrderItems($currencyCode, $currencyValue)
+    private function getOrderItems($currencyCode, $currencyValue, $data)
     {
         $this->load->model('account/order');
         $orderProducts = $this->model_account_order->getOrderProducts($this->session->data['order_id']);
 
-        $this->load->model('extension/total/coupon');
+        $this->load->model('total/coupon');
         $coupon = isset($this->session->data['coupon']) ?
-            $this->model_extension_total_coupon->getCoupon($this->session->data['coupon']) :
+            $this->model_total_coupon->getCoupon($this->session->data['coupon']) :
             null;
 
         if ($coupon) {
             // Скидка в процентах
             if ($coupon['type'] === 'P') {
-                $orderProducts = array_map(function ($item) use ($coupon, $currencyCode, $currencyValue) {
+                $orderProducts = array_map(function ($item) use ($coupon, $currencyCode, $currencyValue, $data) {
                     return [
                         'name'     => $item['name'],
                         'count'    => $item['quantity'],
                         'price'    => round(($item['price'] - $item['price'] * $coupon['discount'] / 100) * $currencyValue, 2),
                         'currency' => $currencyCode,
+                        'nds' => $data['unitpay_nds'],
                     ];
                 }, $orderProducts);
             }
@@ -248,34 +244,39 @@ class ControllerPaymentUnitpay extends Controller {
 
                 $discountRatio = $coupon['discount'] / $totalAmount;
 
-                $orderProducts = array_map(function ($item) use ($coupon, $discountRatio, $currencyCode, $currencyValue) {
+                $orderProducts = array_map(function ($item) use ($coupon, $discountRatio, $currencyCode, $currencyValue, $data) {
                     return [
                         'name'     => $item['name'],
                         'count'    => $item['quantity'],
                         'price'    => round(($item['price'] - $item['price'] * $discountRatio) * $currencyValue, 2),
                         'currency' => $currencyCode,
+                        'nds' => $data['unitpay_nds'],
                     ];
                 }, $orderProducts);
             }
         } else {
-            $orderProducts = array_map(function ($item) use ($currencyCode, $currencyValue) {
+            $orderProducts = array_map(function ($item) use ($currencyCode, $currencyValue, $data) {
                 return array(
                     'name'     => $item['name'],
                     'count'    => $item['quantity'],
                     'price'    => round($item['price'] * $currencyValue, 2),
                     'currency' => $currencyCode,
+                    'nds' => $data['unitpay_nds'],
                 );
             }, $orderProducts);
         }
 
         if (isset($this->session->data['shipping_method']) && $this->session->data['shipping_method']['cost'] > 0) {
-            $orderProducts[] = [
-                'name'     => $this->session->data['shipping_method']['title'],
-                'count'    => 1,
-                'price'    => round($this->session->data['shipping_method']['cost'] * $currencyValue, 2),
-                'currency' => $currencyCode,
-                'type'     => 'service',
-            ];
+            if(!$coupon || $coupon["shipping"] == 0) {
+                $orderProducts[] = [
+                    'name'     => $this->session->data['shipping_method']['title'],
+                    'count'    => 1,
+                    'price'    => round($this->session->data['shipping_method']['cost'] * $currencyValue, 2),
+                    'currency' => $currencyCode,
+                    'nds' => $data['unitpay_delivery_nds'],
+                    'type'     => 'service',
+                ];
+            }
         }
 
         return base64_encode(json_encode($orderProducts));

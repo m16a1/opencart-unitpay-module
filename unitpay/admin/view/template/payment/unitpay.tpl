@@ -64,6 +64,30 @@
           </div>
 
           <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-unitpay_nds"><?php echo $entry_unitpay_nds; ?></label>
+            <div class="col-sm-10">
+              <select name="unitpay_nds" id="input-unitpay_nds" class="form-control">
+                <option <?php if($unitpay_nds == 'none'):?> selected="selected" <?php endif;?> value="none">-</option>
+                <option <?php if($unitpay_nds == 'vat0'):?> selected="selected" <?php endif;?> value="vat0">0%</option>
+                <option <?php if($unitpay_nds == 'vat10'):?> selected="selected" <?php endif;?> value="vat10">10%</option>
+                <option <?php if($unitpay_nds == 'vat20'):?> selected="selected" <?php endif;?> value="vat20">20%</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-unitpay_delivery_nds"><?php echo $entry_unitpay_delivery_nds; ?></label>
+            <div class="col-sm-10">
+              <select name="unitpay_delivery_nds" id="input-unitpay_delivery_nds" class="form-control">
+                <option <?php if($unitpay_delivery_nds == 'none'):?> selected="selected" <?php endif;?> value="none">-</option>
+                <option <?php if($unitpay_delivery_nds == 'vat0'):?> selected="selected" <?php endif;?> value="vat0">0%</option>
+                <option <?php if($unitpay_delivery_nds == 'vat10'):?> selected="selected" <?php endif;?> value="vat10">10%</option>
+                <option <?php if($unitpay_delivery_nds == 'vat20'):?> selected="selected" <?php endif;?> value="vat20">20%</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
             <label class="col-sm-2 control-label" for="input-order_status_after_pay"><?php echo $entry_order_status_after_pay; ?></label>
             <div class="col-sm-10">
               <select name="unitpay_order_status_id_after_pay" id="input-order_status_after_pay" class="form-control">
