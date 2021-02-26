@@ -6,6 +6,8 @@ $_['heading_title']      	= 'UnitPay';
 $_['entry_domain']          = 'Domain:';
 $_['entry_login']        	= 'Public Key:';
 $_['entry_unitpay_key']    	= 'Secret Key:';
+$_['entry_unitpay_nds']    	= 'VAT:';
+$_['entry_unitpay_delivery_nds'] = 'VAT (Delivery):';
 
 $_['entry_order_status_after_pay']          = 'Order Status after pay:';
 $_['entry_order_status_after_create']       = 'Order Status after create:';
@@ -33,4 +35,4 @@ $_['text_success']       	= 'Success: You have modified UnitPay module details!'
 $_['text_yes']           	= 'Yes';
 $_['text_no']           	= 'No';
 $_['text_edit']           	= 'Edit payment Unitpay';
-$_['text_unitpay']          = "<img src=''view/image/payment/unitpay.png' alt='Unitpay' title='Unitpay' style='border: 1px solid #EEEEEE;' />";
+$_['text_unitpay']          = "<img src='view/image/payment/unitpay.png' alt='Unitpay' title='Unitpay' style='border: 1px solid #EEEEEE;' />";
